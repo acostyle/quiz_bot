@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "Quiz bot"
+version = "0.1.0"
+description = "This is a bot for quizzes in Telegram and VK"
+authors = ["acostyle <acostyle.m.z@protonmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+python-telegram-bot = "11.1.0"
+environs = "^9.3.4"
+
+[tool.poetry.dev-dependencies]
+wemake-python-styleguide = "^0.15.3"
+black = "^21.9b0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
