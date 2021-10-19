@@ -1,5 +1,5 @@
 def parse_quiz_file():
-    with open("1vs1200.txt", "r", encoding="KOI8-R") as file:
+    with open('1vs1200.txt', 'r', encoding='KOI8-R') as file:
         file_content = file.read()
 
     quiz_file_content = file_content.split('\n\n')
