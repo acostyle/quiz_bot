@@ -1,13 +1,17 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, replymarkup
 import logging
 from environs import Env
+import random
+from parse_quiz import parse_quiz_file
 
 env = Env()
 env.read_env()
 
 TELEGRAM_TOKEN = env('TELEGRAM_API_TOKEN')
 CHAT_ID = env.int('CHAT_ID')
+
+QUIZ_CONTENT = parse_quiz_file()
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -27,9 +31,12 @@ def help(bot, update):
     update.message.reply_text('Help!')
 
 
-def echo(bot, update):
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
+def send_question(bot, update):
+    """Send to the user question."""
+
+    if update.message.text == 'Новый вопрос':
+        question = random.choice(list(QUIZ_CONTENT.keys()))
+        update.message.reply_text(question)
 
 
 def error(bot, update, error):
@@ -46,7 +53,7 @@ def main():
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(MessageHandler(Filters.text, echo))
+    dp.add_handler(MessageHandler(Filters.text, send_question))
 
     dp.add_error_handler(error)
 
