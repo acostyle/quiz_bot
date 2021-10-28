@@ -1,22 +1,120 @@
 import random
-
+from redis import Redis
 import vk_api as vk
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+from vk_api.utils import get_random_id
 
-from constants import VK_TOKEN
+import json
 
-def echo(event, vk_api):
+from constants import VK_TOKEN, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT
+from parse_quiz import parse_quiz_file
+
+
+QUIZ_CONTENT = parse_quiz_file()
+QUESTION = 0
+ANSWER = 1
+
+
+def make_keyboard():
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('Новый вопрос', color=VkKeyboardColor.PRIMARY)
+    keyboard.add_button('Сдаться', color=VkKeyboardColor.NEGATIVE)
+    keyboard.add_line()
+    keyboard.add_button('Мой счёт', color=VkKeyboardColor.SECONDARY)
+
+    return keyboard
+
+
+def send_question(event, vk_api, db, keyboard):
+    """Send to the user question."""
+
+    question, answer = random.choice(list(QUIZ_CONTENT.items()))
+
+    db.set(event.user_id, json.dumps([question, answer]))
     vk_api.messages.send(
         user_id=event.user_id,
-        message=event.text,
-        random_id=random.randint(1,1000)
+        message=question,
+        random_id=get_random_id(),
+        keyboard=keyboard.get_keyboard(),
     )
 
 
-if __name__ == "__main__":
+def check_answer(event, vk_api, db, keyboard):
+    question_with_answer = db.get(event.user_id).decode('utf-8')
+    question, answer = json.loads(question_with_answer)
+
+    if event.text == 'Новый вопрос':
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=f'Вы не ответили на старый вопрос!\n{question}',
+            random_id=get_random_id(),
+            keyboard=keyboard.get_keyboard(),  
+        )
+    elif event.text == 'Сдаться':
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=f'Правильный {answer}',
+            random_id=get_random_id(),
+            keyboard=keyboard.get_keyboard(),  
+        )
+    elif event.text.lower() in answer.lower():
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=f"Верно! {answer}",
+            random_id=get_random_id(),
+            keyboard=keyboard.get_keyboard(),  
+        )
+    else:
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message="Ответ неверный! Попробуйте еще раз или сдайтесь!",
+            random_id=get_random_id(),
+            keyboard=keyboard.get_keyboard(),  
+        )
+
+
+def cancel(event, vk_api, keyboard):
+    vk_api.messages.send(
+        user_id=event.user_id,
+        message='Возвращайся еще :)',
+        random_id=get_random_id(),
+        keyboard=keyboard.get_keyboard()
+    )
+
+
+def main():
+    """ Пример создания клавиатуры для отправки ботом """
+
     vk_session = vk.VkApi(token=VK_TOKEN)
     vk_api = vk_session.get_api()
     longpoll = VkLongPoll(vk_session)
+
+    redis_db = Redis(
+        host=REDIS_HOST,
+        port=REDIS_PORT,
+        password=REDIS_PASSWORD,
+    )
+
+    keyboard = make_keyboard()
+
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
-            echo(event, vk_api)
+            if event.text in ['Здравствуйте', 'Приветствую', 'Привет', 'Здарова']:
+                vk_api.messages.send(
+                user_id=event.user_id,
+                random_id=get_random_id(),
+                keyboard=keyboard.get_keyboard(),
+                message='Привет. Это бот с викторинами. Нажми на кнопку – Новый вопрос')
+            elif event.text == 'Новый вопрос':
+                send_question(event, vk_api, redis_db, keyboard)
+            elif event.text == 'Сдаться':
+                cancel(event, vk_api, keyboard)
+            elif event.text == 'Мой счет':
+                pass
+            else:
+                check_answer(event, vk_api, redis_db, keyboard)
+
+
+if __name__ == "__main__":
+    main()
