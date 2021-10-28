@@ -2,7 +2,7 @@ from functools import partial
 from queue import Queue
 from redis import Redis
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 import logging
 from environs import Env
 import random
@@ -54,9 +54,7 @@ def send_question(bot, update, db):
 
 def check_answer(bot, update, db):
     question_with_answer = db.get(update.effective_user.id).decode('utf-8')
-    
     question, answer = json.loads(question_with_answer)
-    print(answer)   
 
     if update.message.text == 'Новый вопрос':
         update.message.reply_text(
@@ -77,6 +75,16 @@ def error(update, error):
     logger.warning('Update "%s" caused error "%s"', update, error)
 
 
+def cancel(bot, update):
+    user = update.message.from_user
+    logger.info("Пользователь {0} сдался.".format(user.first_name))
+    update.message.reply_text('Возвращайся еще :)',
+        reply_markup=ReplyKeyboardRemove()
+    )
+
+    return ConversationHandler.END
+
+
 def main():
     """Start the bot."""
     updater = Updater(TELEGRAM_TOKEN)
@@ -94,7 +102,7 @@ def main():
             QUESTION: [MessageHandler(Filters.regex('^Новый вопрос$'), partial(send_question, db=redis_db))],
             ANSWER: [MessageHandler(Filters.text, partial(check_answer, db=redis_db))],
         },
-        fallbacks=[Filters.regex('^Всё$')]
+        fallbacks=[MessageHandler(Filters.text, cancel)]
     )
 
     dp.add_handler(conv_handler)
