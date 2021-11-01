@@ -33,10 +33,9 @@ ANSWER = 1
 def start(bot, update):
     custom_keyboard = [['Новый вопрос', 'Сдаться'], ['Мой счет']]
     reply_markup = ReplyKeyboardMarkup(custom_keyboard)
-    bot.send_message(
-        chat_id=CHAT_ID,
-        text='Я – бот для викторин. Нажми на кнопку "Новый вопрос"',
-        reply_markup=reply_markup,
+    update.message.reply_text(
+        'Привет, я бот для викторин!',
+        reply_markup=reply_markup
     )
 
     return QUESTION
