@@ -9,6 +9,10 @@
 
 This is a chatbot for quizzes. It works on two platforms at once: Telegram and Vkontakte
 
+Links:
+- Telegram: @acostyle_quiz_bot
+- VK: [@acostyle_quiz](https://vk.com/club207142712)
+
 
 ## Installation
 
