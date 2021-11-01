@@ -54,19 +54,7 @@ def check_user_message(event, vk_api, db, keyboard):
     question_with_answer = db.get(event.user_id).decode('utf-8')
     question, answer = json.loads(question_with_answer)
 
-    if event.text == 'Новый вопрос':
-        send_message(
-            user_id=event.user_id,
-            message='Вы не ответили на старый вопрос!\n{0}'.format(question),
-            keyboard=keyboard.get_keyboard(),
-        )
-    elif event.text == 'Сдаться':
-        send_message(
-            user_id=event.user_id,
-            message='Правильный {0}'.format(answer),
-            keyboard=keyboard.get_keyboard(),
-        )
-    elif event.text.lower() in answer.lower():
+    if event.text.lower() in answer.lower():
         send_message(
             user_id=event.user_id,
             message='Верно! {0}'.format(answer),
