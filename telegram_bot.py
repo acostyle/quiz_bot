@@ -25,8 +25,7 @@ from parse_quiz import parse_quiz_file
 logger = logging.getLogger('bot_logger')
 
 QUIZ_CONTENT = parse_quiz_file('src/')
-QUESTION = 0
-ANSWER = 1
+QUESTION, ANSWER = range(2)
 
 
 def start(bot, update):
