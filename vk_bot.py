@@ -8,7 +8,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.utils import get_random_id
 
-from constants import VK_TOKEN, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT
+from environments import VK_TOKEN, REDIS_HOST, REDIS_PASSWORD, REDIS_PORT
 from parse_quiz import parse_quiz_file
 
 

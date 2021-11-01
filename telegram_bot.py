@@ -13,7 +13,7 @@ from telegram.ext import (
     ConversationHandler,
 )
 
-from constants import (
+from environments import (
     TELEGRAM_TOKEN,
     REDIS_HOST,
     REDIS_PASSWORD,
