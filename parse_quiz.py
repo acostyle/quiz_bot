@@ -1,19 +1,25 @@
-def parse_quiz_file(path_to_file):
-    with open(path_to_file, 'r', encoding='KOI8-R') as text_file:
-        file_content = text_file.read()
+import glob
 
-    quiz_file_content = file_content.split('\n\n')
 
-    questions = [
-        question
-        for question in quiz_file_content
-        if question.startswith('Вопрос')
-    ]
+def parse_quiz_file(path_to_folder):
+    files_in_folder = glob.glob('{0}/*.txt'.format(path_to_folder))
 
-    answers = [
-        answer
-        for answer in quiz_file_content
-        if answer.startswith('Ответ')
-    ]
+    for file in files_in_folder:
+        with open(file, 'r', encoding='KOI8-R') as text_file:
+            file_content = text_file.read()
 
-    return dict(zip(questions, answers))
+        quiz_file_content = file_content.split('\n\n')
+
+        questions = [
+            question
+            for question in quiz_file_content
+            if question.startswith('Вопрос')
+        ]
+
+        answers = [
+            answer
+            for answer in quiz_file_content
+            if answer.startswith('Ответ')
+        ]
+
+        return dict(zip(questions, answers))
