@@ -34,7 +34,6 @@ make install
 * Create a .env.dev file with the following content:
 ```.env
 TELEGRAM_API_TOKEN='telegram token'
-CHAT_ID=chat ID
 REDIS_HOST='redis endpoint'
 REDIS_PORT=redis port
 REDIS_PASSWORD='redis password'
