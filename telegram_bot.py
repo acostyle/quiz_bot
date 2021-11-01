@@ -18,7 +18,6 @@ from environments import (
     REDIS_HOST,
     REDIS_PASSWORD,
     REDIS_PORT,
-    CHAT_ID,
 )
 from parse_quiz import parse_quiz_file
 
@@ -55,7 +54,7 @@ def send_question(bot, update, db):
     return ANSWER
 
 
-def check_answer(bot, update, db):
+def check_user_message(bot, update, db):
     question_with_answer = db.get(update.effective_user.id).decode('utf-8')
     question, answer = json.loads(question_with_answer)
 
@@ -111,7 +110,7 @@ def main():
             ANSWER: [
                 MessageHandler(
                     Filters.text,
-                    partial(check_answer, db=redis_db),
+                    partial(check_user_message, db=redis_db),
                 ),
             ],
         },

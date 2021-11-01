@@ -19,6 +19,14 @@ QUESTION = 0
 ANSWER = 1
 
 
+def send_message(event, vk_api, keyboard, message_text):
+    return vk_api.messages.send(
+        user_id=event.user_id,
+        message=message_text,
+        keyboard=keyboard,
+    )
+
+
 def make_keyboard():
     keyboard = VkKeyboard(one_time=True)
 
@@ -37,51 +45,46 @@ def send_question(event, vk_api, db, keyboard):
     question, answer = random.choice(list(QUIZ_CONTENT.items()))
 
     db.set(event.user_id, json.dumps([question, answer]))
-    vk_api.messages.send(
+    send_message(
         user_id=event.user_id,
         message=question,
-        random_id=get_random_id(),
         keyboard=keyboard.get_keyboard(),
     )
 
 
-def check_answer(event, vk_api, db, keyboard):
+def check_user_message(event, vk_api, db, keyboard):
     question_with_answer = db.get(event.user_id).decode('utf-8')
     question, answer = json.loads(question_with_answer)
 
     if event.text == 'Новый вопрос':
-        vk_api.messages.send(
+        send_message(
             user_id=event.user_id,
             message='Вы не ответили на старый вопрос!\n{0}'.format(question),
-            random_id=get_random_id(),
             keyboard=keyboard.get_keyboard(),
         )
     elif event.text == 'Сдаться':
-        vk_api.messages.send(
+        send_message(
             user_id=event.user_id,
             message='Правильный {0}'.format(answer),
-            random_id=get_random_id(),
             keyboard=keyboard.get_keyboard(),
         )
     elif event.text.lower() in answer.lower():
-        vk_api.messages.send(
+        send_message(
             user_id=event.user_id,
             message='Верно! {0}'.format(answer),
-            random_id=get_random_id(),
             keyboard=keyboard.get_keyboard(),
         )
     else:
-        vk_api.messages.send(
+        send_message(
             user_id=event.user_id,
             message='Ответ неверный! Попробуйте еще раз или сдайтесь!',
-            random_id=get_random_id(),
             keyboard=keyboard.get_keyboard(),
         )
 
 
 def cancel(event, vk_api, keyboard):
     logger.info('Пользователь {0} сдался.'.format(event.user_id))
-    vk_api.messages.send(
+    send_message(
         user_id=event.user_id,
         message='Возвращайся еще :)',
         random_id=get_random_id(),
@@ -105,9 +108,8 @@ def main():
     for event in longpoll.listen():
         if event.type == VkEventType.MESSAGE_NEW and event.to_me:
             if event.text in ['Здравствуйте', 'Приветствую', 'Привет']:
-                vk_api.messages.send(
+                send_message(
                     user_id=event.user_id,
-                    random_id=get_random_id(),
                     keyboard=keyboard.get_keyboard(),
                     message='Привет. Это бот с викторинами.\
                 Нажми на кнопку – Новый вопрос',
@@ -117,7 +119,7 @@ def main():
             elif event.text == 'Сдаться':
                 cancel(event, vk_api, keyboard)
             else:
-                check_answer(event, vk_api, redis_db, keyboard)
+                check_user_message(event, vk_api, redis_db, keyboard)
 
 
 if __name__ == '__main__':
